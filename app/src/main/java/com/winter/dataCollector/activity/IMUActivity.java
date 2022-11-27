@@ -16,12 +16,15 @@
 
 package com.winter.dataCollector.activity;
 
+import static android.content.ContentValues.TAG;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
@@ -29,7 +32,7 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 
 import com.winter.dataCollector.R;
-import com.winter.dataCollector.listener.AccelerometerListener;
+import com.winter.dataCollector.listener.IMUSensorListener;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -40,9 +43,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 
-public class AccelerometerActivity extends Activity {
+public class IMUActivity extends Activity {
 
-    private AccelerometerListener accListener;
+    private IMUSensorListener accListener;
 
     private Button btnStart;
     private Button btnEnd;
@@ -86,14 +89,15 @@ public class AccelerometerActivity extends Activity {
                 + calendar.get(Calendar.DAY_OF_MONTH) + "日";
         saveRoot = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/IMU_data/" + date);
         if (!saveRoot.exists()) {
-            saveRoot.mkdirs();
+            if(!saveRoot.mkdirs()){
+                Toast.makeText(this, "创建保存目录失败", Toast.LENGTH_SHORT).show();
+            }
         }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        setContentView(R.layout.accelerometer);
+        setContentView(R.layout.imu_collector);
 
         btnStart = (Button) findViewById(R.id.btn_start);
-        btnEnd = (Button) findViewById(R.id.btn_end);
         // Get an instance of the SensorManager
         SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         // Get an instance of the PowerManager
@@ -106,12 +110,17 @@ public class AccelerometerActivity extends Activity {
 //        Display mDisplay = mWindowManager.getDefaultDisplay();
 
         checkPermission();
-        accListener = new AccelerometerListener(mSensorManager);
-        btnStart.setOnClickListener(v -> accListener.startListen());
-        btnEnd.setOnClickListener(v -> {
-            accListener.stopListen();
-            String data = StringUtils.join(accListener.getData().toArray(), "");
-            saveData("accData_1", data);
+        accListener = new IMUSensorListener(mSensorManager);
+        btnStart.setOnClickListener(v -> {
+            Log.d(TAG, "setOnListener: " + v.isSelected());
+            if(v.isSelected()) {
+                accListener.stopListen();
+                String data = StringUtils.join(accListener.getData().toArray(), "");
+                saveData("accData_1", data);
+            } else {
+                accListener.startListen();
+            }
+            v.setSelected(!v.isSelected());
         });
 
 

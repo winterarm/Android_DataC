@@ -31,7 +31,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.AccelerometerActivity"
+            android:name=".activity.IMUActivity"
             android:exported="true" />
         <activity
             android:name=".activity.RFIDReaderActivity"

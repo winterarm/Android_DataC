@@ -136,13 +136,13 @@ public class WriteEpc implements TagReportListener, TagOpCompleteListener {
             settings.getAutoStop().setMode(AutoStopMode.Duration);
             settings.getAutoStop().setDurationInMs(1000);
 
-//            TagFilter t1 = settings.getFilters().getTagFilter1();
-//            t1.setBitCount(16);
-//            t1.setBitPointer(BitPointers.Epc);
-//            t1.setMemoryBank(MemoryBank.Epc);
-//            t1.setFilterOp(TagFilterOp.Match);
-//            t1.setTagMask("A56C");
-//            settings.getFilters().setMode(TagFilterMode.OnlyFilter1);
+            TagFilter t1 = settings.getFilters().getTagFilter1();
+            t1.setBitCount(16);
+            t1.setBitPointer(BitPointers.Epc);
+            t1.setMemoryBank(MemoryBank.Epc);
+            t1.setFilterOp(TagFilterOp.Match);
+            t1.setTagMask("A56C");// TODO mask设置
+            settings.getFilters().setMode(TagFilterMode.OnlyFilter1);
             // Apply the new settings
             reader.applySettings(settings);
 

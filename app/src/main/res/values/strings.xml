@@ -3,8 +3,9 @@
     <string name="bt_txt_start">START</string>
     <string name="imu">IMU</string>
     <string name="rfid">RFID</string>
-    <string name="start">START</string>
-    <string name="end">END</string>
+    <string name="rewrite">重写EPC</string>
+    <string name="start">开始</string>
+    <string name="end">结束</string>
     <string name="title_activity_rfidsettings">RFIDSettingsActivity</string>
 
     <!-- Preference Titles -->
@@ -21,4 +22,12 @@
     <string name="attachment_summary_on">Automatically download attachments for incoming emails
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="rfid_host_default">192.168.1.100</string>
+
+    <string name="num_1">1</string>
+    <string name="num_2">2</string>
+    <string name="num_3">3</string>
+    <string name="num_4">4</string>
+    <string name="write_epc">EPC修改</string>
+    <string name="imu_amp_rfid"><![CDATA[IMU & RFID]]></string>
 </resources>

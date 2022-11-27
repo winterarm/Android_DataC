@@ -16,32 +16,32 @@ public class MainActivity extends AppCompatActivity {
 
     private OrientationEventListener mOrientationListener;
 
+    Button getin_imuc;
+    Button getin_rfid;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        getin_imuc = findViewById(R.id.btn_imu);
+        getin_rfid = findViewById(R.id.btn_rfid);
+
+        bindListener();
+    }
+
+    private void bindListener() {
         mOrientationListener = new MyOrientationEventListener(this);
+        getin_imuc.setOnClickListener(v -> {
+            Intent intent = new Intent(this, IMUActivity.class);
+            startActivity(intent);
+        });
+        getin_rfid.setOnClickListener(v -> {
+            Intent intent = new Intent(this, RFIDReaderActivity.class);
+            mOrientationListener.disable();
+            startActivity(intent);
+        });
     }
-
-    public void dataCollectorOfIMU(View view){
-
-        System.out.println("START IMU data collecting");
-        Intent intent = new Intent(this, AccelerometerActivity.class);
-        mOrientationListener.disable();
-        startActivity(intent);
-
-    }
-
-    public void dataCollectorOfRFID(View view){
-
-        System.out.println("START RFID data collecting");
-        Intent intent = new Intent(this, RFIDReaderActivity.class);
-        mOrientationListener.disable();
-        startActivity(intent);
-
-    }
-
 
 }

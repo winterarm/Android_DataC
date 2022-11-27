@@ -30,17 +30,4 @@
         <item>-30</item>
         <item>-20</item>
     </string-array>
-    <string-array name="reader_mode">
-        <item>MaxThroughput(0)"</item>
-        <item>Hybrid(1)"</item>
-        <item>DenseReaderM4(2)"</item>
-        <item>DenseReaderM8(3)"</item>
-        <item>MaxMiller(4)"</item>
-        <item>DenseReaderM4Two(5)"</item>
-        <item>AutoSetDenseReader(1000)"</item>
-        <item>AutoSetDenseReaderDeepScan(1002)"</item>
-        <item>AutoSetStaticFast(1003)"</item>
-        <item>AutoSetStaticDRM(1004)"</item>
-        <item>AutoSetCustom(1005)"</item>
-    </string-array>
 </resources>

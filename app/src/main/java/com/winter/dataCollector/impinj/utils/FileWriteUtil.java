@@ -86,8 +86,8 @@ public class FileWriteUtil {
         File fileFind = new File(fileFolderName);
         if (!fileFind.exists())
             fileFind.mkdirs();
-        File[] fileArray = fileFind.listFiles();
-        assert fileArray != null;
+//        File[] fileArray = fileFind.listFiles();
+//        assert fileArray != null;
         filename = fileFolderName + "/" + filename + ".csv";
         File file = new File(filename);
 
