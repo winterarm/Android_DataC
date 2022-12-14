@@ -18,6 +18,8 @@ package com.winter.dataCollector.activity;
 
 import static android.content.ContentValues.TAG;
 
+import static com.winter.dataCollector.AppConstant.SDF;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
@@ -32,33 +34,34 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 
 import com.winter.dataCollector.R;
+import com.winter.dataCollector.impinj.utils.FileWriteUtil;
 import com.winter.dataCollector.listener.IMUSensorListener;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Map;
 
 public class IMUActivity extends Activity {
 
     private IMUSensorListener accListener;
 
     private Button btnStart;
-    private Button btnEnd;
 
-    private Calendar calendar;
-    private String date;
+//    private Calendar calendar;
+//    private String date;
 
     private File saveRoot;
 
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {"android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.WRITE_EXTERNAL_STORAGE"};
+            "android.permission.WRITE_EXTERNAL_STORAGE","android.permission.MANAGE_EXTERNAL_STORAGE"};
 
     private void checkPermission() {
 //检查权限（NEED_PERMISSION）是否被授权 PackageManager.PERMISSION_GRANTED表示同意授权
@@ -83,11 +86,12 @@ public class IMUActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        calendar = Calendar.getInstance();
-        date = calendar.get(Calendar.YEAR) + "年"
-                + (calendar.get(Calendar.MONTH) + 1) + "月"//从0计算
-                + calendar.get(Calendar.DAY_OF_MONTH) + "日";
-        saveRoot = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/IMU_data/" + date);
+//        calendar = Calendar.getInstance();
+//        date = calendar.get(Calendar.YEAR) + "年"
+//                + (calendar.get(Calendar.MONTH) + 1) + "月"//从0计算
+//                + calendar.get(Calendar.DAY_OF_MONTH) + "日";
+        String date = SDF.format(new Date());
+        saveRoot = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SensingData/" + date);
         if (!saveRoot.exists()) {
             if(!saveRoot.mkdirs()){
                 Toast.makeText(this, "创建保存目录失败", Toast.LENGTH_SHORT).show();
@@ -115,8 +119,7 @@ public class IMUActivity extends Activity {
             Log.d(TAG, "setOnListener: " + v.isSelected());
             if(v.isSelected()) {
                 accListener.stopListen();
-                String data = StringUtils.join(accListener.getData().toArray(), "");
-                saveData("accData_1", data);
+                saveData();
             } else {
                 accListener.startListen();
             }
@@ -136,28 +139,16 @@ public class IMUActivity extends Activity {
         super.onPause();
     }
 
-    private void saveData(String fileName, String text) {
-        File file = new File(saveRoot.getAbsolutePath(), fileName + ".csv");
-        while (file.exists()) {
-            String[] names = fileName.split("_");
-            int idx = Integer.parseInt(names[1]) + 1;
-            fileName = names[0] + "_" + idx;
-            file = new File(saveRoot.getAbsolutePath(), fileName + ".csv");
+    private void saveData() {
+        int dirIdx = 1;
+        File dir = new File(saveRoot + "/" + dirIdx);
+        while (dir.exists()) {
+            dirIdx++;
+            dir = new File(saveRoot + "/" + dirIdx);
         }
-        FileOutputStream fileOutputStream = null;
-        try {
-            fileOutputStream = new FileOutputStream(file);
-            fileOutputStream.write(text.getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (fileOutputStream != null) {
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        Map<String, ArrayList<String>> imu_data = accListener.getData();
+        for (Map.Entry<String, ArrayList<String>> entry : imu_data.entrySet()) {
+            FileWriteUtil.writefileM(dir.getPath() + "/IMU_data/", entry.getKey(), entry.getValue());
         }
     }
 

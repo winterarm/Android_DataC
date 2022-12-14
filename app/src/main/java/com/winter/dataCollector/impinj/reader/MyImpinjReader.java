@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.util.Log;
 
+import com.impinj.octane.AntennaConfig;
 import com.impinj.octane.AntennaConfigGroup;
 import com.impinj.octane.BitPointers;
 import com.impinj.octane.ConnectionAttemptEvent;
@@ -43,6 +44,7 @@ import com.winter.dataCollector.activity.RFIDReaderActivity;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.sql.ConnectionEvent;
@@ -63,9 +65,6 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
     private ImpinjReader reader;
 
     private RFIDReaderActivity activity;
-
-    private List<Tag> tags = new ArrayList<>();
-
 
     //TODO 将实验对象编号加入数据当中
 
@@ -154,13 +153,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
         this.activity = activity;
         if (null == reader)
             reader = new ImpinjReader();
-        try {
-            initSetting();
-        } catch (OctaneSdkException e) {
-            e.printStackTrace();
-            //TODO 对异常进行封装
-
-        }
+        initSetting();
         reader.start();
     }
 
@@ -194,7 +187,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
         return retFlag;
     }
 
-    private void initSetting() throws OctaneSdkException {
+    private void initSetting() {
         Settings settings = reader.queryDefaultSettings();
         settings.setReaderMode(readerMode);
         if (isWriteEpcOp) {
@@ -202,10 +195,14 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
             settings.setSession(1);
         }
         if (reader.isConnected()) reader.disconnect();
-        reader.connect(hostname);
+        try {
+            reader.connect(hostname);
+        } catch (OctaneSdkException e) {
+            e.printStackTrace();
+        }
         // 设置标签读取过滤器settings
         if ((masked || isWriteEpcOp) && StringUtils.isNotEmpty(this.targetMask)) {
-            String mask =  StringUtils.remove(targetMask, " ");
+            String mask = StringUtils.remove(targetMask, " ");
             TagFilter t1 = settings.getFilters().getTagFilter1();
             t1.setBitCount(mask.length() * 4L);// 掩码位数
             t1.setBitPointer(BitPointers.Epc);
@@ -229,15 +226,30 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
         report.setIncludeChannel(true);
 
         AntennaConfigGroup antennas = settings.getAntennas();
+        if(antennas.getAntennaConfigs().size()==0){
+            // 天线配置手动初始化
+            antennas.getAntennaConfigs().add(new AntennaConfig(1));
+            antennas.getAntennaConfigs().add(new AntennaConfig(2));
+            antennas.getAntennaConfigs().add(new AntennaConfig(3));
+            antennas.getAntennaConfigs().add(new AntennaConfig(4));
+        }
         antennas.disableAll();
-        antennas.enableById(port);
-        for (short portID : port) {
-            antennas.getAntenna(portID).setIsMaxRxSensitivity(false);
-            antennas.getAntenna(portID).setIsMaxTxPower(false);
-            //发射功率
-            antennas.getAntenna(portID).setTxPowerinDbm(this.txPowerinDbm);
-            //敏感功率
-            antennas.getAntenna(portID).setRxSensitivityinDbm(this.rxSensitivityinDbm);
+        try {
+            antennas.enableById(port);
+        } catch (OctaneSdkException e) {
+            e.printStackTrace();
+        }
+        try {
+            for (short portID : port) {
+                antennas.getAntenna(portID).setIsMaxRxSensitivity(false);
+                antennas.getAntenna(portID).setIsMaxTxPower(false);
+                //发射功率
+                antennas.getAntenna(portID).setTxPowerinDbm(this.txPowerinDbm);
+                //敏感功率
+                antennas.getAntenna(portID).setRxSensitivityinDbm(this.rxSensitivityinDbm);
+            }
+        } catch (OctaneSdkException e) {
+            e.printStackTrace();
         }
         reader.setTagReportListener(this);
         reader.setConnectionAttemptListener(this);
@@ -245,7 +257,11 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
         reader.setReaderStartListener(this);
         reader.setReaderStopListener(this);
         reader.setTagOpCompleteListener(this);
-        reader.applySettings(settings);
+        try {
+            reader.applySettings(settings);
+        } catch (OctaneSdkException e) {
+            e.printStackTrace();
+        }
     }
 
     public void forceDisConnect() {
@@ -262,9 +278,8 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
 
     @Override
     public void onTagReported(ImpinjReader impinjReader, TagReport tagReport) {
-        this.tags.addAll(tagReport.getTags());
 //        Log.d(TAG, "====" + System.currentTimeMillis() + "====");
-        for (Tag t : tags) {
+        for (Tag t : tagReport.getTags()) {
             if (isWriteEpcOp) {
                 short pc = t.getPcBits();
                 String currentEpc = t.getEpc().toHexString();
@@ -275,11 +290,9 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
                 }
             }
         }
-        List<Tag> tagsForView = new ArrayList<>(tags);
-        activity.showRFIDData(tagsForView);
-        tags.clear();
+        List<Tag> tagsForShow = new ArrayList<>(tagReport.getTags());
+        activity.showRFIDData(tagsForShow);// TODO 进程同步的问题
     }
-
 
 
     @Override

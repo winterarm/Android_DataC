@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.StrictMode;
 import android.util.Log;
 import android.util.TypedValue;
@@ -62,14 +63,11 @@ import com.winter.dataCollector.vo.TagInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class RFIDReaderActivity extends Activity {
@@ -96,8 +94,9 @@ public class RFIDReaderActivity extends Activity {
 
     private EditText txtHost;
     private EditText maskCode;
-//    private EditText targetEpc;
+    //    private EditText targetEpc;
     private EditText newEpc;
+    private EditText et_filename;
 
     private Spinner tx_power;
     private Spinner rx_power;
@@ -108,9 +107,11 @@ public class RFIDReaderActivity extends Activity {
 
     private final MyImpinjReader task_rfid = new MyImpinjReader();
 
-    private final Map<String, TagInfo> tagInfoMap = new HashMap<>();
+    // 用于信息展示的map
+    private final Map<String, TagInfo> tagInfoMap = new ConcurrentHashMap<>();
 
-    private final Map<String, ArrayList<String>> report_infos = new HashMap<>();
+    // 保存标签数据
+    private final Map<String, ArrayList<String>> report_infos = new ConcurrentHashMap<>();
 
     private int tagNumForShow = 0;
 
@@ -119,6 +120,7 @@ public class RFIDReaderActivity extends Activity {
     //TODO 可能有些线程上的优化需要处理
 
     private final String saveRoot;
+    private Handler handler;
 
     {
         String date = SDF.format(new Date());
@@ -160,9 +162,9 @@ public class RFIDReaderActivity extends Activity {
         setContentView(R.layout.rfid);
         checkPermission();
         btnCntTest = findViewById(R.id.btn_CT);
-//        btnStart = findViewById(R.id.btn_start);
         tgRead = findViewById(R.id.tg_read);
         txtHost = findViewById(R.id.val_rfid_host);
+        et_filename = findViewById(R.id.val_filename);
         port1 = findViewById(R.id.sw_ports_1);
         port1.setChecked(true);
         port2 = findViewById(R.id.sw_ports_2);
@@ -178,7 +180,6 @@ public class RFIDReaderActivity extends Activity {
         maskToggle = findViewById(R.id.sw_mask);
         maskCode = findViewById(R.id.val_epc_mask);
         cmb = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
-//        targetEpc = findViewById(R.id.val_epc_target);
         newEpc = findViewById(R.id.val_epc_new);
 
         btnWriteEpc = findViewById(R.id.btn_write_epc);
@@ -195,6 +196,7 @@ public class RFIDReaderActivity extends Activity {
 //        Display mDisplay = mWindowManager.getDefaultDisplay();
 
         accListener = new IMUSensorListener(mSensorManager);
+        handler = new Handler(Looper.getMainLooper());
         setOnListener();
     }
 
@@ -229,40 +231,26 @@ public class RFIDReaderActivity extends Activity {
         });
         maskToggle.setOnCheckedChangeListener((buttonView, isChecked) -> task_rfid.setOnMaskState(isChecked));
 
-//        btnStart.setOnClickListener(v -> {
-//            try {
-//                resetReaderParams(task);
-//                task.startReader();
-//            } catch (OctaneSdkException e) {
-//                e.printStackTrace();
-//            }
-//        });
         btnForceStop.setOnClickListener(v -> {
             task_rfid.forceDisConnect();
             tgRead.setSelected(false);
         });
         tgRead.setOnClickListener(v -> {
-            try {
-                Log.d(TAG, "setOnListener: " + v.isSelected());
-                if (v.isSelected()) {
-                    if(sw_imu.isChecked()) {
-                        accListener.stopListen();
-                        String data = StringUtils.join(accListener.getData().toArray(), "");
-                        saveIMUData(saveRoot + "/IMU_data/", "accData_1", data);
-                    }
-                    task_rfid.forceDisConnect();
-                    saveRFIDData(saveRoot+"/RFID_data/");
-                } else {
-                    if(sw_imu.isChecked()) {
-                        accListener.startListen();
-                    }
-                    resetReaderParams(task_rfid);
-                    task_rfid.startReader(this);
+            Log.d(TAG, "setOnListener: " + v.isSelected());
+            if (v.isSelected()) {
+                stopSensing();
+            } else {
+                if (sw_imu.isChecked()) {
+                    accListener.startListen();
                 }
-                v.setSelected(!v.isSelected());
-            } catch (OctaneSdkException e) {
-                e.printStackTrace();
+                resetReaderParams(task_rfid);
+                try {
+                    task_rfid.startReader(this);
+                } catch (OctaneSdkException e) {
+                    e.printStackTrace();
+                }
             }
+            v.setSelected(!v.isSelected());
         });
         btnWriteEpc.setOnClickListener(v -> {
             String mask = maskCode.getText().toString();
@@ -275,18 +263,42 @@ public class RFIDReaderActivity extends Activity {
         });
     }
 
+    private void stopSensing() {
+        // 探测可存储的实验编号
+        int dirIdx = 1;
+        String filename = et_filename.getText().toString();
+        if (StringUtils.isNotEmpty(filename)) filename += "_";
+        File dir = new File(saveRoot + "/" + filename + dirIdx);
+        while (dir.exists()) {
+            dirIdx++;
+            dir = new File(saveRoot + "/" + filename + dirIdx);
+        }
+
+        if (sw_imu.isChecked()) {
+            accListener.stopListen();
+            Map<String, ArrayList<String>> imu_data = accListener.getData();
+            for (Map.Entry<String, ArrayList<String>> entry : imu_data.entrySet()) {
+                FileWriteUtil.writefileM(dir.getPath() + "/IMU_data/", entry.getKey(), entry.getValue());
+            }
+        }
+        task_rfid.forceDisConnect();
+        for (Map.Entry<String, ArrayList<String>> entry : report_infos.entrySet()) {
+            String key = entry.getKey();
+            FileWriteUtil.writefileM(dir.getPath() + "/RFID_data/", key.substring(key.length() - 4), entry.getValue());
+        }
+    }
+
     public void showRFIDData(List<Tag> tags) {
         // TODO 查看一下阅读器的状态 如果已经停止则不更新表信息
-        Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> {
 //            Log.d(TAG, "showRFIDData: IS IN tagNum is " + tags.size());
             tagNumForShow += tags.size();
-            // 统计新到达的标签信息
+            // 统计新到达的标签信息，并对标签数据进行保存
             for (Tag tag : tags) {
                 String epc = tag.getEpc().toString();
-                if(epc.length()>29){
+                if (epc.length() > 29) {
                     // 老的阅读器返回的epc后面有带tid
-                    epc = epc.substring(0,29);
+                    epc = epc.substring(0, 29);
                 }
                 saveTagInfo(epc, tag);
                 TagInfo taginfo;
@@ -299,8 +311,9 @@ public class RFIDReaderActivity extends Activity {
                     taginfo.addInfo(tag.getPeakRssiInDbm(), tag.getPhaseAngleInRadians());
                 }
             }
+            // 标签信息展示
             tagNumForShow += tags.size();
-            if(tagNumForShow > 19 || !task_rfid.isConnected()) {
+            if (tagNumForShow > 49 || !task_rfid.isConnected()) {
                 List<TableRow> tableRows = new ArrayList<>();
                 List<TagInfo> showedTags = tagInfoMap.values().stream().sorted((o1, o2) -> o2.readiedNum - o1.readiedNum).collect(Collectors.toList());
                 for (TagInfo tag : showedTags) {
@@ -315,7 +328,7 @@ public class RFIDReaderActivity extends Activity {
                     epc.setOnClickListener(v -> {
                         cmb.clearPrimaryClip();
                         cmb.setPrimaryClip(ClipData.newPlainText(null, tag.Epc));
-                        Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show();
                         maskCode.setText(tag.Epc);
                     });
                     TextView avg = new TextView(this);
@@ -374,66 +387,34 @@ public class RFIDReaderActivity extends Activity {
         super.onPause();
     }
 
-
-
-    private void saveIMUData(String filePath, String fileName, String text) {
-        File file = new File(filePath);
-        if(!file.exists()) {
-            file.mkdirs();
-        }
-        file = new File(filePath, fileName + ".csv");
-        while (file.exists()) {
-            String[] names = fileName.split("_");
-            int idx = Integer.parseInt(names[1]) + 1;
-            fileName = names[0] + "_" + idx;
-            file = new File(filePath, fileName + ".csv");
-        }
-        FileOutputStream fileOutputStream = null;
-        try {
-            fileOutputStream = new FileOutputStream(file);
-            fileOutputStream.write(text.getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (fileOutputStream != null) {
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     public void saveRFIDData(String filepath) throws OctaneSdkException {
         // 文件读写 一次性读写 可以优化
-        int dirIdx = 1;
-        File dir = new File(filepath + "/" + dirIdx);
-        while (dir.exists()) {
-            dirIdx++;
-            dir = new File(filepath + "/" + dirIdx);
-        }
+//        int dirIdx = 1;
+//        File dir = new File(filepath + "/" + dirIdx);
+//        while (dir.exists()) {
+//            dirIdx++;
+//            dir = new File(filepath + "/" + dirIdx);
+//        }
         for (Map.Entry<String, ArrayList<String>> entry : report_infos.entrySet()) {
             // 写文件
             String key = entry.getKey();
-            String[] keys = key.split("_");
-            String fileDir = filepath + "/" + dirIdx;
-            FileWriteUtil.writefileM(fileDir, keys[0].substring(keys[0].length() - 4), entry.getValue());
+//            String[] keys = key.split("_");// 多天线代码的处理
+//            String fileDir = filepath + "/" + dirIdx;
+            FileWriteUtil.writefileM(filepath, key.substring(key.length() - 4), entry.getValue());
         }
     }
 
-    private void saveTagInfo(String epc, Tag t) {
+    private synchronized void saveTagInfo(String epc, Tag t) {
 //        Log.d(TAG, "saveTagInfo: " + epc);
         // TODO 有时间可以改成本地数据库的存储 不知道会不会更快还是更慢
-        long time = Long.parseLong(t.getFirstSeenTime().ToString());
-        String val = time
+        String val = t.getFirstSeenTime().ToString()
                 + "," + t.getAntennaPortNumber()
                 + "," + t.getPhaseAngleInRadians()
                 + "," + t.getPeakRssiInDbm()
                 + "," + t.getRfDopplerFrequency();
 //        根据标签EPC存储反射信号信息
         if (report_infos.containsKey(epc)) {
-            Objects.requireNonNull(report_infos.get(epc)).add(val);
+            report_infos.get(epc).add(val);
         } else {
             report_infos.put(epc, new ArrayList<>() {{
                 add(val);
