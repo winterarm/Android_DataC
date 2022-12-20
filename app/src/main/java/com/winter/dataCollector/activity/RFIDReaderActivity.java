@@ -20,7 +20,6 @@ import static android.content.ContentValues.TAG;
 import static com.winter.dataCollector.AppConstant.SDF;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -31,7 +30,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.os.StrictMode;
 import android.util.Log;
 import android.util.TypedValue;
@@ -41,13 +39,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 
 import com.impinj.octane.OctaneSdkException;
@@ -67,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -79,23 +78,21 @@ public class RFIDReaderActivity extends Activity {
     private Button btnWriteEpc;
     private ToggleButton tgRead;
 
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch port1;
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch port2;
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch port3;
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch port4;
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch maskToggle;
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch sw_imu;
+    private SwitchCompat port1;
+    private SwitchCompat port2;
+    private SwitchCompat port3;
+    private SwitchCompat port4;
+    private SwitchCompat maskToggle;
+    private SwitchCompat sw_imu;
+    private SwitchCompat sw_clock;
+    private SwitchCompat sw_save;
 
     private EditText txtHost;
     private EditText maskCode;
     //    private EditText targetEpc;
     private EditText newEpc;
+    private EditText val_clock;
+    private EditText val_delay;
     private EditText et_filename;
 
     private Spinner tx_power;
@@ -111,20 +108,24 @@ public class RFIDReaderActivity extends Activity {
     private final Map<String, TagInfo> tagInfoMap = new ConcurrentHashMap<>();
 
     // 保存标签数据
-    private final Map<String, ArrayList<String>> report_infos = new ConcurrentHashMap<>();
+    private final Map<String, ArrayList<String>> report_info = new ConcurrentHashMap<>();
 
     private int tagNumForShow = 0;
 
-    private ClipboardManager cmb;
+    private boolean clock_mode = false;
+    private boolean data_save = true;
+    private boolean running = false;
 
-    //TODO 可能有些线程上的优化需要处理
+    private ClipboardManager cmb;
 
     private final String saveRoot;
     private Handler handler;
+    private Runnable state_update_task;
 
     {
         String date = SDF.format(new Date());
         saveRoot = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SensingData/" + date;
+
     }
 
 
@@ -155,7 +156,7 @@ public class RFIDReaderActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        //TODO 读取上一次的配置信息 进行配置初始化
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -184,6 +185,10 @@ public class RFIDReaderActivity extends Activity {
 
         btnWriteEpc = findViewById(R.id.btn_write_epc);
         sw_imu = findViewById(R.id.sw_imu_state);
+        sw_save = findViewById(R.id.sw_save);
+        sw_clock = findViewById(R.id.sw_clock);
+        val_clock = findViewById(R.id.val_clock);
+        val_delay = findViewById(R.id.val_delay);
 
         SensorManager mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         // Get an instance of the PowerManager
@@ -198,10 +203,44 @@ public class RFIDReaderActivity extends Activity {
         accListener = new IMUSensorListener(mSensorManager);
         handler = new Handler(Looper.getMainLooper());
         setOnListener();
+        state_update_task = new Runnable() {
+            @Override
+            public void run() {
+                if (running) {
+                    txtHost.setTextColor(getResources().getColor(R.color.yellow, null));
+                } else {
+                    txtHost.setTextColor(getResources().getColor(R.color.black, null));
+                }
+                handler.postDelayed(this, 500);
+            }
+        };
     }
 
-    private void setOnListener() {
+    /**
+     * 重置阅读器参数 端口 功率 模式 以及内存中的数据对象 标签展示表内容
+     * @param task
+     */
+    private void resetReaderParams(MyImpinjReader task) {
+        String hostname = txtHost.getText().toString();
+        task.setHostname(hostname);
+        task.setPorts(ports_state);
+        String txP = tx_power.getSelectedItem().toString();
+        String rxP = rx_power.getSelectedItem().toString();
+        MyReaderMode mode = (MyReaderMode) reader_mode.getSelectedItem();
+        task.setPowerinDbm(Double.parseDouble(txP), Double.parseDouble(rxP));
+        task.setReaderMode(mode.getReaderMode());
+        task.setTargetMask(maskCode.getText().toString());
+        Log.d(TAG, "resetReaderParams: " + hostname + " " + ports_state + " " + txP + " " + rxP + " ");
+        tagInfoMap.clear();
+        report_info.clear();
+        if (table_tags.getChildCount() > 1)
+            table_tags.removeViews(1, table_tags.getChildCount() - 1);
+    }
 
+    /**
+     * 绑定事件监听器
+     */
+    private void setOnListener() {
         btnCntTest.setOnClickListener(v -> {
             resetReaderParams(task_rfid);
             if (task_rfid.testConnected()) {
@@ -213,22 +252,10 @@ public class RFIDReaderActivity extends Activity {
             }
         });
 
-        port1.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) ports_state += 1;
-            else ports_state -= 1;
-        });
-        port2.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) ports_state += 2;
-            else ports_state -= 2;
-        });
-        port3.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) ports_state += 4;
-            else ports_state -= 4;
-        });
-        port4.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) ports_state += 8;
-            else ports_state -= 8;
-        });
+        port1.setOnCheckedChangeListener((buttonView, isChecked) -> ports_state ^= 1);
+        port2.setOnCheckedChangeListener((buttonView, isChecked) -> ports_state ^= 2);
+        port3.setOnCheckedChangeListener((buttonView, isChecked) -> ports_state ^= 4);
+        port4.setOnCheckedChangeListener((buttonView, isChecked) -> ports_state ^= 8);
         maskToggle.setOnCheckedChangeListener((buttonView, isChecked) -> task_rfid.setOnMaskState(isChecked));
 
         btnForceStop.setOnClickListener(v -> {
@@ -236,21 +263,13 @@ public class RFIDReaderActivity extends Activity {
             tgRead.setSelected(false);
         });
         tgRead.setOnClickListener(v -> {
-            Log.d(TAG, "setOnListener: " + v.isSelected());
             if (v.isSelected()) {
-                stopSensing();
+                stopAndSaveData();
+                v.setSelected(false);
             } else {
-                if (sw_imu.isChecked()) {
-                    accListener.startListen();
-                }
-                resetReaderParams(task_rfid);
-                try {
-                    task_rfid.startReader(this);
-                } catch (OctaneSdkException e) {
-                    e.printStackTrace();
-                }
+                running = startListening();
+                v.setSelected(true);
             }
-            v.setSelected(!v.isSelected());
         });
         btnWriteEpc.setOnClickListener(v -> {
             String mask = maskCode.getText().toString();
@@ -261,35 +280,56 @@ public class RFIDReaderActivity extends Activity {
                 e.printStackTrace();
             }
         });
+        sw_clock.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            clock_mode = isChecked;
+            Log.d(TAG, "CLock Mode is " + (clock_mode ? "on" : "off"));
+        });
+        sw_save.setChecked(true);
+        sw_save.setOnCheckedChangeListener((buttonView, isChecked) -> data_save = isChecked);
     }
 
-    private void stopSensing() {
-        // 探测可存储的实验编号
-        int dirIdx = 1;
-        String filename = et_filename.getText().toString();
-        if (StringUtils.isNotEmpty(filename)) filename += "_";
-        File dir = new File(saveRoot + "/" + filename + dirIdx);
-        while (dir.exists()) {
-            dirIdx++;
-            dir = new File(saveRoot + "/" + filename + dirIdx);
-        }
-
-        if (sw_imu.isChecked()) {
-            accListener.stopListen();
-            Map<String, ArrayList<String>> imu_data = accListener.getData();
-            for (Map.Entry<String, ArrayList<String>> entry : imu_data.entrySet()) {
-                FileWriteUtil.writefileM(dir.getPath() + "/IMU_data/", entry.getKey(), entry.getValue());
+    private boolean startListening() {
+        // TODO 添加阅读器连接不上时报错处理
+        resetReaderParams(task_rfid);
+        try {
+            // 定时器模式
+            if (clock_mode) {
+                long delay = 0L;
+                long duration = (long) (Double.parseDouble(val_clock.getText().toString()) * 1000L);
+                if (val_delay.getText().length() > 0) {
+                    delay = (long) Double.parseDouble(val_delay.getText().toString()) * 1000L;
+                }
+                handler.postDelayed(() -> {
+                    try {
+                        if (sw_imu.isChecked()) {
+                            accListener.startListen();
+                        }
+                        task_rfid.startReader(this);
+                        tgRead.setText("开始");
+                    } catch (OctaneSdkException e) {
+                        e.printStackTrace();
+                    }
+                }, delay);
+                handler.postDelayed(() -> {
+                    stopAndSaveData();
+                    tgRead.setText("开始");
+                }, duration + delay);
+            } else {
+                if (sw_imu.isChecked()) {
+                    accListener.startListen();
+                }
+                task_rfid.startReader(this);
             }
+        } catch (OctaneSdkException e) {
+            e.printStackTrace();
         }
-        task_rfid.forceDisConnect();
-        for (Map.Entry<String, ArrayList<String>> entry : report_infos.entrySet()) {
-            String key = entry.getKey();
-            FileWriteUtil.writefileM(dir.getPath() + "/RFID_data/", key.substring(key.length() - 4), entry.getValue());
-        }
+        handler.postDelayed(state_update_task, 1000);
+        return true;
     }
 
     public void showRFIDData(List<Tag> tags) {
-        // TODO 查看一下阅读器的状态 如果已经停止则不更新表信息
+        // 查看一下阅读器的状态 如果已经停止则不更新表信息
+        if (!running) return;
         handler.post(() -> {
 //            Log.d(TAG, "showRFIDData: IS IN tagNum is " + tags.size());
             tagNumForShow += tags.size();
@@ -300,10 +340,11 @@ public class RFIDReaderActivity extends Activity {
                     // 老的阅读器返回的epc后面有带tid
                     epc = epc.substring(0, 29);
                 }
-                saveTagInfo(epc, tag);
+                saveTagInfo(epc, tag);//保存标签信息
                 TagInfo taginfo;
                 if (tagInfoMap.containsKey(epc)) {
                     taginfo = tagInfoMap.get(epc);
+                    assert taginfo != null;
                     taginfo.addInfo(tag.getPeakRssiInDbm(), tag.getPhaseAngleInRadians());
                 } else {
                     taginfo = new TagInfo(epc);
@@ -331,13 +372,17 @@ public class RFIDReaderActivity extends Activity {
 //                        Toast.makeText(this, "已复制到剪贴板", Toast.LENGTH_SHORT).show();
                         maskCode.setText(tag.Epc);
                     });
+                    TextView last = new TextView(this);
+                    last.setText(String.valueOf(tag.rssi_last));
+                    last.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+                    last.setWidth(8);
                     TextView avg = new TextView(this);
-                    avg.setText(String.valueOf(tag.avg_rssi));
+                    avg.setText(String.valueOf(tag.rssi_avg));
                     avg.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     avg.setWidth(8);
                     avg.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                     TextView max = new TextView(this);
-                    max.setText(String.valueOf(tag.max_rssi));
+                    max.setText(String.valueOf(tag.rssi_max));
                     max.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
                     max.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                     TextView cnt = new TextView(this);
@@ -347,8 +392,9 @@ public class RFIDReaderActivity extends Activity {
 
                     tr.addView(epc, 0);
                     tr.addView(cnt, 1);
-                    tr.addView(avg, 2);
-                    tr.addView(max, 3);
+                    tr.addView(last, 2);
+                    tr.addView(avg, 3);
+                    tr.addView(max, 4);
                     tableRows.add(tr);
                 }
                 if (table_tags.getChildCount() > 1)
@@ -361,21 +407,41 @@ public class RFIDReaderActivity extends Activity {
         });
     }
 
-    private void resetReaderParams(MyImpinjReader task) {
-        String hostname = txtHost.getText().toString();
-        task.setHostname(hostname);
-        task.setPorts(ports_state);
-        String txP = tx_power.getSelectedItem().toString();
-        String rxP = rx_power.getSelectedItem().toString();
-        MyReaderMode mode = (MyReaderMode) reader_mode.getSelectedItem();
-        task.setPowerinDbm(Double.parseDouble(txP), Double.parseDouble(rxP));
-        task.setReaderMode(mode.getReaderMode());
-        task.setTargetMask(maskCode.getText().toString());
-        Log.d(TAG, "resetReaderParams: " + hostname + " " + ports_state + " " + txP + " " + rxP + " ");
-        tagInfoMap.clear();
-        if (table_tags.getChildCount() > 1)
-            table_tags.removeViews(1, table_tags.getChildCount() - 1);
+    // TODO 保存实验的标记信息
+    private void stopAndSaveData() {
+        // 探测可存储的实验编号
+        running = false;
+        accListener.stopListen();
+        task_rfid.forceDisConnect();
+        handler.removeCallbacks(state_update_task);
+        txtHost.setTextColor(getResources().getColor(R.color.black, null));
+        if (data_save) saveDataByCsvFile();
     }
+
+    /**
+     * 将采集到的数据保存到本地CSV文件当中
+     */
+    private void saveDataByCsvFile() {
+        int dirIdx = 1;
+        String filename = et_filename.getText().toString();
+        if (StringUtils.isNotEmpty(filename)) filename += "_";
+        File dir = new File(saveRoot + "/" + filename + dirIdx);
+        while (dir.exists()) {
+            dirIdx++;
+            dir = new File(saveRoot + "/" + filename + dirIdx);
+        }
+        if (sw_imu.isChecked()) {
+            Map<String, ArrayList<String>> imu_data = accListener.getData();
+            for (Map.Entry<String, ArrayList<String>> entry : imu_data.entrySet()) {
+                FileWriteUtil.writefileM(dir.getPath() + "/IMU_data/", entry.getKey(), entry.getValue());
+            }
+        }
+        for (Map.Entry<String, ArrayList<String>> entry : report_info.entrySet()) {
+            String key = entry.getKey();
+            FileWriteUtil.writefileM(dir.getPath() + "/RFID_data/", key.substring(key.length() - 4), entry.getValue());
+        }
+    }
+
 
     @Override
     protected void onResume() {
@@ -387,23 +453,6 @@ public class RFIDReaderActivity extends Activity {
         super.onPause();
     }
 
-    public void saveRFIDData(String filepath) throws OctaneSdkException {
-        // 文件读写 一次性读写 可以优化
-//        int dirIdx = 1;
-//        File dir = new File(filepath + "/" + dirIdx);
-//        while (dir.exists()) {
-//            dirIdx++;
-//            dir = new File(filepath + "/" + dirIdx);
-//        }
-        for (Map.Entry<String, ArrayList<String>> entry : report_infos.entrySet()) {
-            // 写文件
-            String key = entry.getKey();
-//            String[] keys = key.split("_");// 多天线代码的处理
-//            String fileDir = filepath + "/" + dirIdx;
-            FileWriteUtil.writefileM(filepath, key.substring(key.length() - 4), entry.getValue());
-        }
-    }
-
     private synchronized void saveTagInfo(String epc, Tag t) {
 //        Log.d(TAG, "saveTagInfo: " + epc);
         // TODO 有时间可以改成本地数据库的存储 不知道会不会更快还是更慢
@@ -413,13 +462,20 @@ public class RFIDReaderActivity extends Activity {
                 + "," + t.getPeakRssiInDbm()
                 + "," + t.getRfDopplerFrequency();
 //        根据标签EPC存储反射信号信息
-        if (report_infos.containsKey(epc)) {
-            report_infos.get(epc).add(val);
+        if (report_info.containsKey(epc)) {
+            Objects.requireNonNull(report_info.get(epc)).add(val);
         } else {
-            report_infos.put(epc, new ArrayList<>() {{
+            report_info.put(epc, new ArrayList<>() {{
                 add(val);
             }});
         }
     }
 
+    public void EPCWriteComplete() {
+        //TODO 这部分提示 可以强化 明显一点
+        handler.post(() -> {
+            task_rfid.forceDisConnect();
+            Toast.makeText(this, "EPC Write Success!", Toast.LENGTH_SHORT).show();
+        });
+    }
 }

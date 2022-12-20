@@ -30,4 +30,5 @@
     <string name="num_4">4</string>
     <string name="write_epc">EPC修改</string>
     <string name="imu_amp_rfid"><![CDATA[IMU & RFID]]></string>
+    <string name="_0">0</string>
 </resources>

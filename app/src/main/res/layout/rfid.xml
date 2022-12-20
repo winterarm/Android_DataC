@@ -94,7 +94,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.478" />
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_ports_1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -104,10 +104,9 @@
                     app:layout_constraintEnd_toStartOf="@+id/sw_ports_2"
                     app:layout_constraintStart_toEndOf="@+id/l_rfid_ports"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.478"
-                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+                    app:layout_constraintVertical_bias="0.478"/>
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_ports_2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -117,10 +116,9 @@
                     app:layout_constraintEnd_toStartOf="@+id/sw_ports_3"
                     app:layout_constraintStart_toEndOf="@+id/sw_ports_1"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.478"
-                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+                    app:layout_constraintVertical_bias="0.478"/>
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_ports_3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -130,10 +128,9 @@
                     app:layout_constraintEnd_toStartOf="@+id/sw_ports_4"
                     app:layout_constraintStart_toEndOf="@+id/sw_ports_2"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.478"
-                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+                    app:layout_constraintVertical_bias="0.478"/>
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_ports_4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -143,8 +140,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/sw_ports_3"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.478"
-                    tools:ignore="UseSwitchCompatOrMaterialXml,TouchTargetSizeCheck" />
+                    app:layout_constraintVertical_bias="0.478"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -271,9 +267,13 @@
                 <TextView
                     android:layout_width="100dp"
                     android:maxWidth="100dp"
+                    android:text="RSSI_Last"
+                    android:textAlignment="center" />
+                <TextView
+                    android:layout_width="100dp"
+                    android:maxWidth="100dp"
                     android:text="RSSI_Avg"
                     android:textAlignment="center" />
-
                 <TextView
                     android:layout_width="100dp"
                     android:maxWidth="80dp"
@@ -329,7 +329,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     tools:ignore="TouchTargetSizeCheck" />
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_mask"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -414,9 +414,12 @@
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp">
+                android:layout_height="40dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
 
                 <TextView
                     android:id="@+id/tv_imu_state"
@@ -429,7 +432,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_imu_state"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -439,7 +442,6 @@
                     app:layout_constraintTop_toTopOf="parent"
                     tools:ignore="TouchTargetSizeCheck" />
             </androidx.constraintlayout.widget.ConstraintLayout>
-
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -454,7 +456,7 @@
                     android:id="@+id/l_filename"
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="文件名"
+                    android:text="Label"
                     android:textAlignment="textStart"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/val_filename"
@@ -474,6 +476,98 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/l_filename"
                     app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/ll_clock_read"
+                android:layout_width="match_parent"
+                android:layout_height="40dp">
+
+                <TextView
+                    android:id="@+id/l_delay"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="延迟"
+                    android:textAlignment="textStart"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/val_delay"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias=".5" />
+
+                <EditText
+                    android:id="@+id/val_delay"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:ems="12"
+                    android:digits="0123456789"
+                    android:text="@string/_0"
+                    android:textSize="18sp"
+                    android:textAlignment="textEnd"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/l_duration"
+                    app:layout_constraintStart_toEndOf="@+id/l_delay"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="TouchTargetSizeCheck" />
+                <TextView
+                    android:id="@+id/l_duration"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="持续时间"
+                    android:textAlignment="textStart"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/val_clock"
+                    app:layout_constraintStart_toEndOf="@+id/val_delay"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias=".5" />
+
+                <EditText
+                    android:id="@+id/val_clock"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:ems="12"
+                    android:digits="0123456789"
+                    android:text="@string/_0"
+                    android:textSize="18sp"
+                    android:textAlignment="textEnd"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/sw_clock"
+                    app:layout_constraintStart_toEndOf="@+id/l_duration"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/sw_clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/l_savedata"
+                    app:layout_constraintStart_toEndOf="@+id/val_clock"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="TouchTargetSizeCheck" />
+                <TextView
+                    android:id="@+id/l_savedata"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="保存数据"
+                    android:textAlignment="textEnd"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/sw_save"
+                    app:layout_constraintStart_toEndOf="@+id/sw_clock"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias=".5" />
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/sw_save"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/l_savedata"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="TouchTargetSizeCheck" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout

@@ -150,6 +150,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
     }
 
     public void startReader(RFIDReaderActivity activity) throws OctaneSdkException {
+        //TODO 对阅读器异常进行包装处理
         this.activity = activity;
         if (null == reader)
             reader = new ImpinjReader();
@@ -187,7 +188,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
         return retFlag;
     }
 
-    private void initSetting() {
+    private void initSetting() throws OctaneSdkException {
         Settings settings = reader.queryDefaultSettings();
         settings.setReaderMode(readerMode);
         if (isWriteEpcOp) {
@@ -195,11 +196,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
             settings.setSession(1);
         }
         if (reader.isConnected()) reader.disconnect();
-        try {
             reader.connect(hostname);
-        } catch (OctaneSdkException e) {
-            e.printStackTrace();
-        }
         // 设置标签读取过滤器settings
         if ((masked || isWriteEpcOp) && StringUtils.isNotEmpty(this.targetMask)) {
             String mask = StringUtils.remove(targetMask, " ");
@@ -328,7 +325,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
     static short EPC_OP_ID = 123;
     static short PC_BITS_OP_ID = 321;
     static int opSpecID = 1;
-    static int outstanding = 0;
+    static int outstanding = 0;//0 已经发送了相关指令
 
     void programEpc(String currentEpc, short currentPC, String newEpc)
             throws Exception {
@@ -389,20 +386,18 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
     }
 
     public void onTagOpComplete(ImpinjReader reader, TagOpReport results) {
-        System.out.println("TagOpComplete: ");
         for (TagOpResult t : results.getResults()) {
-            System.out.print("  EPC: " + t.getTag().getEpc().toHexString());
             if (t instanceof TagWriteOpResult) {
                 TagWriteOpResult tr = (TagWriteOpResult) t;
-
-                if (tr.getOpId() == EPC_OP_ID) {
-                    System.out.print("  Write to EPC Complete: ");
-                } else if (tr.getOpId() == PC_BITS_OP_ID) {
-                    System.out.print("  Write to PC Complete: ");
-                }
-                System.out.println(" result: " + tr.getResult().toString()
+//                if (tr.getOpId() == EPC_OP_ID) {
+//                } else if (tr.getOpId() == PC_BITS_OP_ID) {
+//                }
+                Log.d("TagOpComplete", "Write result: " + tr.getResult().toString()
                         + " words_written: " + tr.getNumWordsWritten());
-                outstanding--;
+                outstanding--;//表示指令完成
+                if(tr.getResult().getValue() == 0){
+                    activity.EPCWriteComplete();
+                }
             }
         }
     }

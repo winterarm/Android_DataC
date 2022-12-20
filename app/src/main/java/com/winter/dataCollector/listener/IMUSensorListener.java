@@ -112,4 +112,5 @@ public class IMUSensorListener implements SensorEventListener {
     public List<String> getAllData() {
         return data;
     }
+
 }
