@@ -459,13 +459,13 @@
                     android:text="Label"
                     android:textAlignment="textStart"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/val_filename"
+                    app:layout_constraintEnd_toStartOf="@+id/val_filedir"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias=".5" />
 
                 <EditText
-                    android:id="@+id/val_filename"
+                    android:id="@+id/val_filedir"
                     android:layout_width="340dp"
                     android:layout_height="wrap_content"
                     android:inputType="text"

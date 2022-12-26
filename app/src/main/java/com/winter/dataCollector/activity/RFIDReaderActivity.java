@@ -93,7 +93,7 @@ public class RFIDReaderActivity extends Activity {
     private EditText newEpc;
     private EditText val_clock;
     private EditText val_delay;
-    private EditText et_filename;
+    private EditText val_filedir;
 
     private Spinner tx_power;
     private Spinner rx_power;
@@ -165,7 +165,7 @@ public class RFIDReaderActivity extends Activity {
         btnCntTest = findViewById(R.id.btn_CT);
         tgRead = findViewById(R.id.tg_read);
         txtHost = findViewById(R.id.val_rfid_host);
-        et_filename = findViewById(R.id.val_filename);
+        val_filedir = findViewById(R.id.val_filedir);
         port1 = findViewById(R.id.sw_ports_1);
         port1.setChecked(true);
         port2 = findViewById(R.id.sw_ports_2);
@@ -305,7 +305,7 @@ public class RFIDReaderActivity extends Activity {
                             accListener.startListen();
                         }
                         task_rfid.startReader(this);
-                        tgRead.setText("开始");
+                        tgRead.setText("结束");
                     } catch (OctaneSdkException e) {
                         e.printStackTrace();
                     }
@@ -313,6 +313,7 @@ public class RFIDReaderActivity extends Activity {
                 handler.postDelayed(() -> {
                     stopAndSaveData();
                     tgRead.setText("开始");
+                    tgRead.setSelected(false);
                 }, duration + delay);
             } else {
                 if (sw_imu.isChecked()) {
@@ -409,13 +410,16 @@ public class RFIDReaderActivity extends Activity {
 
     // TODO 保存实验的标记信息
     private void stopAndSaveData() {
-        // 探测可存储的实验编号
-        running = false;
-        accListener.stopListen();
-        task_rfid.forceDisConnect();
-        handler.removeCallbacks(state_update_task);
-        txtHost.setTextColor(getResources().getColor(R.color.black, null));
-        if (data_save) saveDataByCsvFile();
+        if(running) {
+            // 探测可存储的实验编号
+            running = false;
+            accListener.stopListen();
+            task_rfid.forceDisConnect();
+            handler.removeCallbacks(state_update_task);
+            txtHost.setTextColor(getResources().getColor(R.color.black, null));
+
+            if (data_save) saveDataByCsvFile();
+        }
     }
 
     /**
@@ -423,12 +427,13 @@ public class RFIDReaderActivity extends Activity {
      */
     private void saveDataByCsvFile() {
         int dirIdx = 1;
-        String filename = et_filename.getText().toString();
-        if (StringUtils.isNotEmpty(filename)) filename += "_";
-        File dir = new File(saveRoot + "/" + filename + dirIdx);
+        String filedir = val_filedir.getText().toString();
+        String dirstr = saveRoot;
+        if (StringUtils.isNotEmpty(filedir)) dirstr += "/" + filedir;
+        File dir = new File(dirstr + "/" + dirIdx);
         while (dir.exists()) {
             dirIdx++;
-            dir = new File(saveRoot + "/" + filename + dirIdx);
+            dir = new File(dirstr + "/" + dirIdx);
         }
         if (sw_imu.isChecked()) {
             Map<String, ArrayList<String>> imu_data = accListener.getData();
