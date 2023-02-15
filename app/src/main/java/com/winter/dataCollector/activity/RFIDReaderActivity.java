@@ -146,7 +146,6 @@ public class RFIDReaderActivity extends Activity {
 
         }
         //            Toast.makeText(this, "已授权成功！", Toast.LENGTH_SHORT).show();
-
     }
 
 

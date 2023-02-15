@@ -19,7 +19,6 @@ public class MainActivity extends AppCompatActivity {
     Button getin_imuc;
     Button getin_rfid;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
