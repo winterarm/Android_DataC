@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specßific language governing permissions and
  * limitations under the License.
  */
 
@@ -217,6 +217,7 @@ public class RFIDReaderActivity extends Activity {
 
     /**
      * 重置阅读器参数 端口 功率 模式 以及内存中的数据对象 标签展示表内容
+     *
      * @param task
      */
     private void resetReaderParams(MyImpinjReader task) {
@@ -409,7 +410,7 @@ public class RFIDReaderActivity extends Activity {
 
     // TODO 保存实验的标记信息
     private void stopAndSaveData() {
-        if(running) {
+        if (running) {
             // 探测可存储的实验编号
             running = false;
             accListener.stopListen();

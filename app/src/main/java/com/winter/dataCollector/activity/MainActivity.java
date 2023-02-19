@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     Button getin_imuc;
     Button getin_rfid;
+    Button getin_camera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         getin_imuc = findViewById(R.id.btn_imu);
         getin_rfid = findViewById(R.id.btn_rfid);
+        getin_camera = findViewById(R.id.btn_camera);
 
         bindListener();
     }
@@ -38,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
         });
         getin_rfid.setOnClickListener(v -> {
             Intent intent = new Intent(this, RFIDReaderActivity.class);
+            mOrientationListener.disable();
+            startActivity(intent);
+        });
+        getin_camera.setOnClickListener(v -> {
+            Intent intent = new Intent(this, CameraActivity.class);
             mOrientationListener.disable();
             startActivity(intent);
         });

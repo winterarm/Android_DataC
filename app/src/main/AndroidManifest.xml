@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="true"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -36,6 +39,9 @@
             android:exported="true" />
         <activity
             android:name=".activity.RFIDReaderActivity"
+            android:exported="true" />
+        <activity
+            android:name=".activity.CameraActivity"
             android:exported="true" />
     </application>
 

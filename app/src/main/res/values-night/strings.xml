@@ -2,4 +2,6 @@
 <resources>
     <string name="imu">IMU</string>
     <string name="write_epc">EPC修改</string>
+    <string name="preview_area">预览窗</string>
+    <string name="camera">camera</string>
 </resources>
