@@ -16,7 +16,6 @@
 
 package com.winter.dataCollector.activity;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
@@ -29,6 +28,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
@@ -101,6 +101,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         cameraProviderFuture.addListener(() -> {
             try {
                 cameraProvider = cameraProviderFuture.get();
+
                 bindPreview(cameraProvider);
 
             } catch (ExecutionException | InterruptedException e) {
@@ -135,8 +136,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                 .setTargetRotation(this.getWindowManager().getDefaultDisplay().getRotation())
                 .build();
-
-        cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
+        Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
+        // For performing operations that affect all outputs.
+//        CameraControl cameraControl = camera.getCameraControl();
+        // For querying information and states.
+//        CameraInfo cameraInfo = camera.getCameraInfo();
     }
 
 
@@ -147,7 +151,9 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 // do nothing for now
                 break;
             case R.id.camera_btn:
-                capturePhoto();
+                for (int i = 0; i < 1; i++) {
+                    capturePhoto();
+                }
                 break;
             case R.id.switch_camera_btn:
                 defCamera = !defCamera;
@@ -159,7 +165,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private void capturePhoto() {
         //TODO 照片名字
-        SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
+        SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.CHINA);
         File file = new File(getBatchDirectoryName(), mDateFormat.format(new Date()) + ".jpg");
 
         ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
@@ -185,12 +191,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                     @Override
                     public void onError(@NonNull ImageCaptureException exception) {
                         exception.printStackTrace();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(CameraActivity.this, "Image Capture error", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        runOnUiThread(() -> Toast.makeText(CameraActivity.this, "Image Capture error", Toast.LENGTH_SHORT).show());
 
                     }
                 });
@@ -199,8 +200,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     public String getBatchDirectoryName() {
 
-        String app_folder_path = "";
-        app_folder_path = Environment.getExternalStorageDirectory().toString() + "/CameraX";
+        String app_folder_path = Environment.getExternalStorageDirectory().toString() + "/CameraX";
         File dir = new File(app_folder_path);
         if (!dir.exists() && !dir.mkdirs()) {
         }

@@ -43,6 +43,9 @@
         <activity
             android:name=".activity.CameraActivity"
             android:exported="true" />
+        <activity
+            android:name=".activity.TestBasicVideo"
+            android:exported="true" />
     </application>
 
 </manifest>

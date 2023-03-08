@@ -33,5 +33,6 @@
     <string name="_0">0</string>
     <string name="capture">Demo</string>
     <string name="preview_area">预览窗</string>
-    <string name="camera">camera</string>
+    <string name="video">video</string>
+    <string name="photo">photo</string>
 </resources>

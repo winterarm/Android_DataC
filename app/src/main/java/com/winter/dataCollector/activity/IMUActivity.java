@@ -90,6 +90,7 @@ public class IMUActivity extends Activity {
 //        date = calendar.get(Calendar.YEAR) + "年"
 //                + (calendar.get(Calendar.MONTH) + 1) + "月"//从0计算
 //                + calendar.get(Calendar.DAY_OF_MONTH) + "日";
+        requestWindowFeature(Window.FEATURE_NO_TITLE);// 去掉标题栏
         String date = SDF.format(new Date());
         saveRoot = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SensingData/" + date);
         if (!saveRoot.exists()) {

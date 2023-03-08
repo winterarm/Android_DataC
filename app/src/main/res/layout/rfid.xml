@@ -12,7 +12,7 @@
         android:layout_height="180dp"
         android:fadeScrollbars="true"
         android:paddingTop="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/sv_table"
+        app:layout_constraintBottom_toTopOf="@+id/sv_setting2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -233,65 +233,16 @@
     <!--        app:layout_constraintStart_toStartOf="parent"-->
     <!--        app:layout_constraintTop_toBottomOf="@id/sv_setting">-->
     <!-- TODO  用来显示标签信息 -->
-    <HorizontalScrollView
-        android:id="@+id/sv_table"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/sv_setting2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/sv_setting">
-
-        <TableLayout
-            android:id="@+id/table_recdata"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="5dp">
-
-            <TableRow>
-
-                <TextView
-                    android:layout_width="200dp"
-                    android:maxWidth="200dp"
-                    android:text="EPC"
-                    android:textAlignment="center"
-                    android:textSize="12dp" />
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:maxWidth="100dp"
-                    android:text="Num"
-                    android:textAlignment="center" />
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:maxWidth="100dp"
-                    android:text="RSSI_Last"
-                    android:textAlignment="center" />
-                <TextView
-                    android:layout_width="100dp"
-                    android:maxWidth="100dp"
-                    android:text="RSSI_Avg"
-                    android:textAlignment="center" />
-                <TextView
-                    android:layout_width="100dp"
-                    android:maxWidth="80dp"
-                    android:text="RSSI_Max"
-                    android:textAlignment="center" />
-            </TableRow>
-        </TableLayout>
-    </HorizontalScrollView>
 
     <ScrollView
         android:id="@+id/sv_setting2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingBottom="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/sv_table"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/sv_table">
+        app:layout_constraintTop_toBottomOf="@+id/sv_setting">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -415,33 +366,7 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
 
-                <TextView
-                    android:id="@+id/tv_imu_state"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="同时监听IMU数据"
-                    android:textAlignment="center"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/sw_imu_state"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/sw_imu_state"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tv_imu_state"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:ignore="TouchTargetSizeCheck" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -572,6 +497,34 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
+                android:layout_height="40dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <TextView
+                    android:id="@+id/tv_imu_state"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="同时监听IMU数据"
+                    android:textAlignment="center"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/sw_imu_state"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/sw_imu_state"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tv_imu_state"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="TouchTargetSizeCheck" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="72dp">
 
                 <Button
@@ -603,7 +556,59 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
         </LinearLayout>
     </ScrollView>
+
+    <HorizontalScrollView
+        android:id="@+id/sv_table"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sv_setting2">
+
+        <TableLayout
+            android:id="@+id/table_recdata"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp">
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="200dp"
+                    android:maxWidth="200dp"
+                    android:text="EPC"
+                    android:textAlignment="center"
+                    android:textSize="12dp" />
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:maxWidth="100dp"
+                    android:text="Num"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:maxWidth="100dp"
+                    android:text="RSSI_Last"
+                    android:textAlignment="center" />
+                <TextView
+                    android:layout_width="100dp"
+                    android:maxWidth="100dp"
+                    android:text="RSSI_Avg"
+                    android:textAlignment="center" />
+                <TextView
+                    android:layout_width="100dp"
+                    android:maxWidth="80dp"
+                    android:text="RSSI_Max"
+                    android:textAlignment="center" />
+            </TableRow>
+        </TableLayout>
+    </HorizontalScrollView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
