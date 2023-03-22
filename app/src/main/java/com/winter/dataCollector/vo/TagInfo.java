@@ -17,16 +17,18 @@ public class TagInfo {
     List<Double> rssis = new ArrayList<>();
     List<Double> phases = new ArrayList<>();
     List<Double> rssis_last = new ArrayList<>();
+    List<Double> dopplers = new ArrayList<>();
 
     public TagInfo(String epc) {
         Epc = epc;
     }
 
-    public void addInfo(double rssi, double phase) {
+    public void addInfo(double rssi, double phase, double doppler) {
         rssi_last = rssi;
         rssis.add(rssi);
         rssis_last.add(rssi);
         phases.add(phase);
+        dopplers.add(doppler);
         this.readiedNum++;
         if(readiedNum > 50)
             rssis_last.remove(0);

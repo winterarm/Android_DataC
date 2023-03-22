@@ -195,8 +195,9 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
             settings.setSearchMode(SearchMode.SingleTarget);
             settings.setSession(1);
         }
-        if (reader.isConnected()) reader.disconnect();
-            reader.connect(hostname);
+        if (reader.isConnected())
+            reader.disconnect();
+        reader.connect(hostname);
         // 设置标签读取过滤器settings
         if ((masked || isWriteEpcOp) && StringUtils.isNotEmpty(this.targetMask)) {
             String mask = StringUtils.remove(targetMask, " ");
@@ -223,7 +224,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
         report.setIncludeChannel(true);
 
         AntennaConfigGroup antennas = settings.getAntennas();
-        if(antennas.getAntennaConfigs().size()==0){
+        if (antennas.getAntennaConfigs().size() == 0) {
             // 天线配置手动初始化
             antennas.getAntennaConfigs().add(new AntennaConfig(1));
             antennas.getAntennaConfigs().add(new AntennaConfig(2));
@@ -395,7 +396,7 @@ public class MyImpinjReader implements TagReportListener, ConnectionAttemptListe
                 Log.d("TagOpComplete", "Write result: " + tr.getResult().toString()
                         + " words_written: " + tr.getNumWordsWritten());
                 outstanding--;//表示指令完成
-                if(tr.getResult().getValue() == 0){
+                if (tr.getResult().getValue() == 0) {
                     activity.EPCWriteComplete();
                 }
             }

@@ -236,7 +236,7 @@
 
     <ScrollView
         android:id="@+id/sv_setting2"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="0dp"
         app:layout_constraintBottom_toTopOf="@+id/sv_table"
@@ -256,10 +256,10 @@
 
                 <TextView
                     android:id="@+id/l_epc_mask"
-                    android:layout_width="60dp"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:text="掩码"
-                    android:textAlignment="textStart"
+                    android:textAlignment="center"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/val_epc_mask"
                     app:layout_constraintStart_toStartOf="parent"
@@ -268,7 +268,7 @@
 
                 <EditText
                     android:id="@+id/val_epc_mask"
-                    android:layout_width="300dp"
+                    android:layout_width="280dp"
                     android:layout_height="wrap_content"
                     android:ems="12"
                     android:inputType="textPersonName"
@@ -282,13 +282,13 @@
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/sw_mask"
-                    android:layout_width="wrap_content"
+                    android:layout_width="70dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_gravity="center_horizontal"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/val_epc_mask"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     tools:ignore="TouchTargetSizeCheck" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -341,28 +341,41 @@
 
                 <TextView
                     android:id="@+id/l_epc_new"
-                    android:layout_width="60dp"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
-                    android:text="新EPC"
-                    android:textAlignment="textStart"
+                    android:text="EPC"
+                    android:textAlignment="center"
+                    app:layout_constraintVertical_bias=".5"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/val_epc_new"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias=".5" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <EditText
                     android:id="@+id/val_epc_new"
-                    android:layout_width="340dp"
+                    android:layout_width="280dp"
                     android:layout_height="wrap_content"
                     android:inputType="text"
                     android:text=""
                     android:textAlignment="viewStart"
                     android:textSize="18sp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/btn_write_epc"
                     app:layout_constraintStart_toEndOf="@+id/l_epc_new"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/btn_write_epc"
+                    android:layout_width="70dp"
+                    android:layout_height="29dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/btn_style_2"
+                    android:text="@string/write_epc"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/val_epc_new"
+                    app:layout_constraintTop_toTopOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -379,7 +392,7 @@
 
                 <TextView
                     android:id="@+id/l_filename"
-                    android:layout_width="60dp"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:text="Label"
                     android:textAlignment="textStart"
@@ -410,7 +423,7 @@
 
                 <TextView
                     android:id="@+id/l_delay"
-                    android:layout_width="60dp"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:text="延迟"
                     android:textAlignment="textStart"
@@ -436,7 +449,7 @@
                     tools:ignore="TouchTargetSizeCheck" />
                 <TextView
                     android:id="@+id/l_duration"
-                    android:layout_width="60dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="持续时间"
                     android:textAlignment="textStart"
@@ -517,33 +530,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/tg_read"
                     app:layout_constraintStart_toEndOf="@id/tv_imu_state"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:ignore="TouchTargetSizeCheck" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="72dp">
-
-                <Button
-                    android:id="@+id/btn_write_epc"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_margin="5dip"
-                    android:layout_weight="1"
-                    android:background="@drawable/btn_style"
-                    android:gravity="center"
-                    android:text="@string/write_epc"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/tg_read"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ToggleButton
                     android:id="@+id/tg_read"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_margin="5dip"
                     android:layout_weight="1"
@@ -552,9 +546,8 @@
                     android:textOn="@string/end"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/btn_write_epc"
+                    app:layout_constraintStart_toEndOf="@+id/sw_imu_state"
                     app:layout_constraintTop_toTopOf="parent" />
-
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
@@ -564,6 +557,7 @@
         android:id="@+id/sv_table"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@drawable/border_0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

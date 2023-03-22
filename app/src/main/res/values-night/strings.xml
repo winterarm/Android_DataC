@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="imu">IMU</string>
-    <string name="write_epc">EPC修改</string>
+    <string name="write_epc">写入</string>
     <string name="preview_area">预览窗</string>
     <string name="video">video</string>
     <string name="photo">photo</string>

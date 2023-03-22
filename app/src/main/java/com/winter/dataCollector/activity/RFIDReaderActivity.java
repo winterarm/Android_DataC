@@ -348,11 +348,11 @@ public class RFIDReaderActivity extends Activity {
                 if (tagInfoMap.containsKey(epc)) {
                     taginfo = tagInfoMap.get(epc);
                     assert taginfo != null;
-                    taginfo.addInfo(tag.getPeakRssiInDbm(), tag.getPhaseAngleInRadians());
+                    taginfo.addInfo(tag.getPeakRssiInDbm(), tag.getPhaseAngleInRadians(), tag.getRfDopplerFrequency());
                 } else {
                     taginfo = new TagInfo(epc);
                     tagInfoMap.put(epc, taginfo);
-                    taginfo.addInfo(tag.getPeakRssiInDbm(), tag.getPhaseAngleInRadians());
+                    taginfo.addInfo(tag.getPeakRssiInDbm(), tag.getPhaseAngleInRadians(), tag.getRfDopplerFrequency());
                 }
             }
             // 标签信息展示
